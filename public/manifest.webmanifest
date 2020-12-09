@@ -1,0 +1,25 @@
+{
+    "name": "My Qur'an Journey",
+    "short_name": "My Qur'an Journey",
+    "icons": [
+        {
+            "src": "assets/icons/icon-g-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/icons/icon-g-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/icons/icon-g-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#6d3f96",
+    "background_color": "#ffffff",
+    "start_url": "/",
+    "display": "standalone"
+}
