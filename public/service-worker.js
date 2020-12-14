@@ -1,78 +1,43 @@
-const staticCacheName = 'site-static-v2';
-const dynamicCacheName = 'site-dynamic-v1';
-const assets = [
-  '/',
-  '/index.html',
-  '/img/dish.png',
-  '/pages/fallback.html',
+const cacheName = 'v2';
 
-  './images/header-bg.jpg',
-  './styles/font-awesome.min.css',
-  './styles/animate.css',
-  './styles/bootstrap.min.css',
-  './styles/main.css',
-  './js/modernizr-2.7.1.js',
-  'http://fonts.googleapis.com/css?family=Raleway:400,100,200,300,500,600,700,800,900|Montserrat:400,700',
-  
-  '/manifest.webmanifest',
-  '/dist/index.js',
-  '/dist/style.css',
-  '/dist/db.js',
-];
-
-// cache size limit function
-const limitCacheSize = (name, size) => {
-  caches.open(name).then(cache => {
-    cache.keys().then(keys => {
-      if(keys.length > size){
-        cache.delete(keys[0]).then(limitCacheSize(name, size));
-      }
-    });
-  });
-};
-
-// install event
-self.addEventListener('install', evt => {
-  //console.log('service worker installed');
-  evt.waitUntil(
-    caches.open(staticCacheName).then((cache) => {
-      console.log('caching shell assets');
-      cache.addAll(assets);
-    })
-  );
+// Call Install Event
+self.addEventListener('install', e => {
+  console.log('Service Worker: Installed');
 });
 
-// activate event
-self.addEventListener('activate', evt => {
-  //console.log('service worker activated');
-  evt.waitUntil(
-    caches.keys().then(keys => {
-      //console.log(keys);
-      return Promise.all(keys
-        .filter(key => key !== staticCacheName && key !== dynamicCacheName)
-        .map(key => caches.delete(key))
+// Call Activate Event
+self.addEventListener('activate', e => {
+  console.log('Service Worker: Activated');
+  // Remove unwanted caches
+  e.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== cacheName) {
+            console.log('Service Worker: Clearing Old Cache');
+            return caches.delete(cache);
+          }
+        })
       );
     })
   );
 });
 
-// fetch event
-self.addEventListener('fetch', evt => {
-  //console.log('fetch event', evt);
-  evt.respondWith(
-    caches.match(evt.request).then(cacheRes => {
-      return cacheRes || fetch(evt.request).then(fetchRes => {
-        return caches.open(dynamicCacheName).then(cache => {
-          cache.put(evt.request.url, fetchRes.clone());
-          // check cached items size
-          limitCacheSize(dynamicCacheName, 15);
-          return fetchRes;
-        })
-      });
-    }).catch(() => {
-      if(evt.request.url.indexOf('.html') > -1){
-        return caches.match('/pages/fallback.html');
-      } 
-    })
+// Call Fetch Event
+self.addEventListener('fetch', e => {
+  console.log('Service Worker: Fetching');
+  e.respondWith(
+    fetch(e.request)
+      .then(res => {
+        // Make copy/clone of response
+        const resClone = res.clone();
+        // Open cahce
+        caches.open(cacheName).then(cache => {
+          // Add response to cache
+          cache.put(e.request, resClone);
+        });
+        return res;
+      })
+      .catch(err => caches.match(e.request).then(res => res))
   );
 });
